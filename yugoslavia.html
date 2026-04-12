@@ -4,13 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>S-125 NEVA — Operation Allied Force</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="yugoslavia/css/yugoslavia.css">
 </head>
 <body>
 <div id="game-container">
 
-  <!-- Canvas stack -->
-  <canvas id="map-canvas"></canvas>
+  <!-- Map + Radar stack -->
+  <div id="map-div"></div>
   <canvas id="radar-canvas"></canvas>
 
   <!-- Title / Campaign Select -->

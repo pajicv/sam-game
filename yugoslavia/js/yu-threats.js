@@ -1,11 +1,11 @@
-/* ── yu-threats.js — NATO threats, F-117 stealth, B-52 cruise launch, 2s emission ── */
+/* ── yu-threats.js — NATO threats, F-117 stealth, B-52 cruise launch, 10s emission ── */
 'use strict';
 
 const Threats = (() => {
   const HUNTER_SPEED      = 120;
   const HUNTER_TURN_RATE  = 1.0;
   const LOCK_LOSS_TIME    = 4.0;
-  const EMISSION_THRESHOLD = 2.0; // S-125 is very detectable — 2 seconds!
+  const EMISSION_THRESHOLD = 10.0; // S-125 targeting radar detectable after 10s continuous emission
 
   const ASSET_DAMAGE = {
     STRIKE:20, FAST:10, DRIFTER:35, DRONE:8, JAMMER:5,
@@ -388,9 +388,10 @@ const Threats = (() => {
     if (activeJammer) {
       Audio.startJammerTone();
       state.jammerSpawnTimer = (state.jammerSpawnTimer || 0) + state.dt;
-      if (state.jammerSpawnTimer > 1.5) {
+      // S-125 is more resistant to ECM — slower false blip rate, fewer blips
+      if (state.jammerSpawnTimer > 2.5) {
         state.jammerSpawnTimer = 0;
-        const count = 3 + Math.floor(Math.random() * 4);
+        const count = 2 + Math.floor(Math.random() * 3);
         for (let i = 0; i < count; i++) {
           state.falseBlips.push({
             angle:        Math.random() * 2 * Math.PI,

@@ -17,7 +17,7 @@ const state = {
   // S-125 Neva: 4 SM / 4 LG
   missiles: { small: 4, large: 4, smallMax: 4, largeMax: 4 },
 
-  // Optical track — Yugoslavia special ability
+  // TV camera optronic guidance (late-model SNR-125)
   opticalTrack: { available: true, usedThisWave: false },
 
   threats:        [],
@@ -63,7 +63,6 @@ const state = {
 const MAP_HEAT_DRAIN = -8.0;
 
 // ── Canvas refs ──
-let mapCanvas   = null;
 let radarCanvas = null;
 
 // ── Loop state ──
@@ -72,10 +71,9 @@ let lastTime = 0;
 // ── Init ──
 
 function init() {
-  mapCanvas   = document.getElementById('map-canvas');
   radarCanvas = document.getElementById('radar-canvas');
 
-  MapModule.init(mapCanvas);
+  MapModule.init('map-div');
   Radar.init(radarCanvas);
   Audio.init();
 
@@ -140,12 +138,13 @@ function updateHeat(dt) {
     let rate;
     if (survOn || tgtOn) {
       rate = 0;
-      if (survOn) rate += eff.heatOn * 0.15;
-      if (tgtOn)  rate += eff.heatOn * 0.4;
+      if (survOn) rate += eff.heatOn * 0.06;  // surveillance: slow heat
+      if (tgtOn)  rate += eff.heatOn * 0.18;  // targeting: moderate heat
     } else {
-      rate = eff.heatOff;
+      // Radars OFF: cool down (negative rate)
+      rate = -eff.heatOff;
     }
-    state.heat.value = Math.min(100, state.heat.value + rate * dt);
+    state.heat.value = Math.max(0, Math.min(100, state.heat.value + rate * dt));
     if (state.heat.value >= 100) {
       triggerForcedReposition();
     }
@@ -463,7 +462,7 @@ function _showMapTutorial() {
 
 function _showRadarTutorial() {
   if (state.wave.current > 0) return;
-  UI.showTutorial('[Q] surv  |  [R] target (2s HARM!)  |  [O] optical  |  CLICK blip to fire  |  [M] map');
+  UI.showTutorial('[Q] surv  |  [R] target (10s HARM!)  |  [O] TV track  |  CLICK blip to fire  |  [M] map');
   setTimeout(() => UI.hideTutorial(), 8000);
 }
 

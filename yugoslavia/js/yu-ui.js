@@ -36,12 +36,12 @@ const UI = (() => {
       ctrlBar:        document.getElementById('ctrl-bar'),
       tutorial:       document.getElementById('tutorial'),
       radarCanvas:    document.getElementById('radar-canvas'),
-      mapCanvas:      document.getElementById('map-canvas'),
+      mapDiv:         document.getElementById('map-div'),
     };
 
     _bindKeyboard();
     _bindRadarCanvas();
-    _bindMapCanvas();
+    _bindMapClicks();
   }
 
   // ── Campaign map ──
@@ -101,7 +101,7 @@ const UI = (() => {
           <li>Position battery on map, then press <strong>ENGAGE</strong></li>
           <li>LEFT-CLICK blip \u2192 fire small missile (SM)</li>
           <li>RIGHT-CLICK blip \u2192 fire large missile (LG)</li>
-          <li>[Q] surveillance \u00b7 [R] targeting \u00b7 [M] map \u00b7 [O] optical track</li>
+          <li>[Q] surveillance \u00b7 [R] targeting \u00b7 [M] map \u00b7 [O] TV track</li>
         </ul>
       `;
     }
@@ -224,7 +224,7 @@ const UI = (() => {
       <button class="ctrl-btn ${survOn ? 'active' : ''}" id="ctrl-surv">${survLabel}</button>
       <button class="ctrl-btn ${tgtOn ? 'active warn' : ''}" id="ctrl-tgt">${tgtLabel}</button>
       <button class="ctrl-btn" id="ctrl-map">[M] MAP</button>
-      <button class="ctrl-btn ${opticalMode ? 'warn' : ''} ${optUsed ? 'danger' : ''}" id="ctrl-optical">[O] OPTICAL${optUsed ? ' USED' : ''}</button>
+      <button class="ctrl-btn ${opticalMode ? 'warn' : ''} ${optUsed ? 'danger' : ''}" id="ctrl-optical">[O] TV TRACK${optUsed ? ' USED' : ''}</button>
     `;
     document.getElementById('ctrl-surv').onclick = () => { onSurveillanceToggle && onSurveillanceToggle(); };
     document.getElementById('ctrl-tgt').onclick  = () => { onTargetingToggle && onTargetingToggle(); };
@@ -243,7 +243,7 @@ const UI = (() => {
     if (!btn) return;
     const optUsed = state.opticalTrack && state.opticalTrack.usedThisWave;
     btn.classList.toggle('warn', opticalMode && !optUsed);
-    btn.textContent = opticalMode && !optUsed ? '[O] OPTICAL: ARM' : (optUsed ? '[O] OPTICAL USED' : '[O] OPTICAL');
+    btn.textContent = opticalMode && !optUsed ? '[O] TV: ARM' : (optUsed ? '[O] TV USED' : '[O] TV TRACK');
   }
 
   function hideControls() {
@@ -376,7 +376,7 @@ const UI = (() => {
 
     const CLICK_HIT_RADIUS = 24;
     const tgtRange  = MapModule.getRadarRange(state);
-    const survRange = tgtRange * 2.0;
+    const survRange = tgtRange * 3.0;
     const scopeRange = state.radar.surveillance.on ? survRange : tgtRange;
     let closest = null;
     let closestDist = Infinity;
@@ -412,43 +412,13 @@ const UI = (() => {
     return closest;
   }
 
-  // ── Map canvas mouse input ──
+  // ── Map click input (via Leaflet) ──
 
-  function _bindMapCanvas() {
-    const c = els.mapCanvas;
-
-    c.addEventListener('mousemove', e => {
-      if (state.mode !== 'MAP') return;
-      const rect = c.getBoundingClientRect();
-      const wx = (e.clientX - rect.left) * (MapModule.CANVAS_SIZE / rect.width) * 2;
-      const wy = (e.clientY - rect.top)  * (MapModule.CANVAS_SIZE / rect.height) * 2;
-      const g  = MapModule.worldToGrid(wx, wy);
-      if (g.gx !== hoverGridX || g.gy !== hoverGridY) {
-        hoverGridX = g.gx;
-        hoverGridY = g.gy;
-        MapModule.markDirty();
-      }
-    });
-
-    c.addEventListener('click', e => {
+  function _bindMapClicks() {
+    MapModule.onMapClick((gx, gy) => {
       if (state.mode !== 'MAP') return;
       Audio.resume();
-      const rect = c.getBoundingClientRect();
-      const wx = (e.clientX - rect.left) * (MapModule.CANVAS_SIZE / rect.width) * 2;
-      const wy = (e.clientY - rect.top)  * (MapModule.CANVAS_SIZE / rect.height) * 2;
-      const g  = MapModule.worldToGrid(wx, wy);
-      onMapTileClick && onMapTileClick(g.gx, g.gy);
-    });
-
-    c.addEventListener('touchend', e => {
-      if (state.mode !== 'MAP') return;
-      Audio.resume();
-      const touch = e.changedTouches[0];
-      const rect  = c.getBoundingClientRect();
-      const wx = (touch.clientX - rect.left) * (MapModule.CANVAS_SIZE / rect.width) * 2;
-      const wy = (touch.clientY - rect.top)  * (MapModule.CANVAS_SIZE / rect.height) * 2;
-      const g  = MapModule.worldToGrid(wx, wy);
-      onMapTileClick && onMapTileClick(g.gx, g.gy);
+      onMapTileClick && onMapTileClick(gx, gy);
     });
   }
 

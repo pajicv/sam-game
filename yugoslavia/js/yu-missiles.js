@@ -1,4 +1,4 @@
-/* ── yu-missiles.js — S-125 fire control, 0.8x speed, optical track ── */
+/* ── yu-missiles.js — S-125 fire control, 0.8x speed, TV camera track ── */
 'use strict';
 
 const Missiles = (() => {
@@ -7,7 +7,9 @@ const Missiles = (() => {
   const INTERCEPT_RADIUS = 18;
   const MAX_FLIGHT_TIME  = 25;
 
-  const OPTICAL_HIT_PROB = 0.37; // 37% flat hit chance for optical track
+  // TV camera guidance (late-model SNR-125): 50% hit chance, 25km range, no radar emission
+  const TV_TRACK_HIT_PROB = 0.50;
+  const TV_TRACK_RANGE    = 1200; // ~25km in world units (WORLD_SIZE=1440 covers ~30km)
 
   // F-117A intercept score bonus
   const STEALTH_SCORE_BONUS = {
@@ -56,7 +58,7 @@ const Missiles = (() => {
     return true;
   }
 
-  // ── Optical Track — fire without targeting radar emission ──
+  // ── TV Camera Track — fire with optronic guidance, no radar emission (25km range) ──
   function fireOpticalTrack(state, targetId) {
     if (!state.opticalTrack || state.opticalTrack.usedThisWave) return false;
     if (state.missiles.small <= 0) return false;
@@ -64,9 +66,18 @@ const Missiles = (() => {
     const target = state.threats.find(t => t.id === targetId);
     if (!target) return false;
 
+    // Range check: TV camera effective to 25km
+    const dx = target.x - state.battery.worldX;
+    const dy = target.y - state.battery.worldY;
+    if (Math.sqrt(dx*dx + dy*dy) > TV_TRACK_RANGE) return false;
+
     const spd = MISSILE_SPEED.SMALL;
-    // Optical track fires at current position (no lead calculation — optical guidance)
-    const angle = Math.atan2(target.y - state.battery.worldY, target.x - state.battery.worldX);
+    // TV track fires with lead calculation (better than pure optical)
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    const tof = dist / spd;
+    const aimX = target.x + target.vx * tof * 0.6; // partial lead (TV guidance)
+    const aimY = target.y + target.vy * tof * 0.6;
+    const angle = Math.atan2(aimY - state.battery.worldY, aimX - state.battery.worldX);
 
     state.activeMissiles.push({
       x:         state.battery.worldX,
@@ -90,9 +101,9 @@ const Missiles = (() => {
   // ── Intercept probability ──
 
   function checkIntercept(missile, target) {
-    // Optical track has flat probability regardless of target type
+    // TV camera track: higher hit probability than old optical, but still flat
     if (missile.isOptical) {
-      return Math.random() < OPTICAL_HIT_PROB;
+      return Math.random() < TV_TRACK_HIT_PROB;
     }
 
     let p;

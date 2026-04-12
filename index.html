@@ -3,76 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>SAM Battery Simulator</title>
-  <link rel="stylesheet" href="css/style.css">
+  <title>S-125 NEVA — Operation Allied Force</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="yugoslavia/css/yugoslavia.css">
 </head>
 <body>
 <div id="game-container">
 
-  <!-- ── Canvas stack ── -->
-  <canvas id="map-canvas"></canvas>
+  <!-- Map + Radar stack -->
+  <div id="map-div"></div>
   <canvas id="radar-canvas"></canvas>
 
-  <!-- ── Faction Select ── -->
-  <div id="overlay-faction-select" class="overlay">
-    <h2>SURFACE-TO-AIR MISSILE</h2>
-    <h1>BATTERY SIMULATOR</h1>
-    <p style="font-size:0.72em;color:#444;letter-spacing:2px;margin-bottom:28px;">SELECT FACTION</p>
-    <div id="faction-cards">
-      <div class="faction-card north" id="btn-north">
-        <h3>Northern Coalition</h3>
-        <p>Heavy Pantsir-S2 battery. High visibility signature. 12s targeting window before HARM launch.</p>
-        <p>8 SM / 8 LG missiles per mission.</p>
-        <p><strong>Radar:</strong> [Q] Surveillance (safe) · [R] Targeting (emits)</p>
-        <p><strong>Special:</strong> Salvo Mode — fire two large missiles simultaneously.</p>
-        <div class="faction-tag">▶ AGGRESSIVE · HIGH FIREPOWER</div>
-      </div>
-      <div class="faction-card south" id="btn-south">
-        <h3>Southern Alliance</h3>
-        <p>Long-range HQ-22 battery. Superior radar range. 15s targeting window before HARM launch.</p>
-        <p>6 SM / 4 LG missiles per mission.</p>
-        <p><strong>Radar:</strong> [Q] Surveillance (safe) · [R] Targeting (emits)</p>
-        <p><strong>Special:</strong> IFF Uplink — identify one contact per wave without emitting.</p>
-        <div class="faction-tag">▶ DEFENSIVE · HIGH PRECISION</div>
-      </div>
-    </div>
-    <p style="font-size:0.65em;color:#2a2a2a;margin-top:32px;letter-spacing:2px;">V1.0 · CANVAS API · NO DEPENDENCIES</p>
-  </div>
-
-  <!-- ── Campaign Map ── -->
-  <div id="overlay-campaign-map" class="overlay hidden">
-    <h2>THEATRE COMMAND</h2>
-    <h1 id="campaign-faction-label">CAMPAIGN</h1>
+  <!-- Title / Campaign Select -->
+  <div id="overlay-campaign-map" class="overlay">
+    <h2>FEDERAL REPUBLIC OF YUGOSLAVIA — 3RD ARMY AIR DEFENSE</h2>
+    <h1>S-125 NEVA</h1>
+    <p class="subtitle">OPERATION ALLIED FORCE · MARCH 1999</p>
+    <p class="subtitle" style="color:#555;margin-bottom:20px;font-size:0.65em;">You are outgunned, outnumbered, and the enemy controls the sky. Survive. Make them pay.</p>
     <div id="campaign-wrap">
       <div id="campaign-grid"></div>
     </div>
-    <button class="btn" id="btn-change-faction" onclick="UI.showFactionSelect(); document.getElementById('overlay-faction-select').classList.remove('hidden'); document.getElementById('overlay-campaign-map').classList.add('hidden');">◀ CHANGE FACTION</button>
+    <p class="subtitle" style="margin-top:18px;color:#2a2a2a;font-size:0.6em;">V1.0 · CANVAS API · NO DEPENDENCIES</p>
   </div>
 
-  <!-- ── Mission Briefing ── -->
+  <!-- Mission Briefing -->
   <div id="overlay-briefing" class="overlay hidden">
     <h2>MISSION BRIEFING</h2>
     <h1 id="briefing-title">MISSION</h1>
     <div id="briefing-body"></div>
     <div style="margin-top:18px">
-      <button class="btn" id="btn-briefing-back">◀ BACK</button>
-      <button class="btn btn-large" id="btn-briefing-deploy">DEPLOY BATTERY ▶</button>
+      <button class="btn" id="btn-briefing-back">&#9664; BACK</button>
+      <button class="btn btn-large" id="btn-briefing-deploy">DEPLOY BATTERY &#9654;</button>
     </div>
   </div>
 
-  <!-- ── Inter-Wave Intel ── -->
+  <!-- Inter-Wave Intel -->
   <div id="overlay-inter-wave" class="overlay hidden">
     <h2>WAVE COMPLETE</h2>
     <h1 id="inter-wave-title">WAVE 1 COMPLETE</h1>
     <div id="inter-wave-body">
       <div id="inter-wave-score" style="font-size:1.2em;color:var(--fp);margin-bottom:14px;"></div>
       <div id="intel-lines" style="border:1px solid #222;padding:12px 16px;font-size:0.8em;line-height:1.8;"></div>
-      <p style="font-size:0.72em;color:#444;margin-top:10px;letter-spacing:1px;">REPOSITION BATTERY BEFORE NEXT ENGAGEMENT. RESUPPLY +2SM +1LG.</p>
+      <p style="font-size:0.72em;color:#444;margin-top:10px;letter-spacing:1px;">REPOSITION BATTERY BEFORE NEXT ENGAGEMENT. RESUPPLY +1SM +1LG.</p>
     </div>
-    <button class="btn btn-large" id="btn-inter-wave-continue" style="margin-top:20px">MAP MODE ▶</button>
+    <button class="btn btn-large" id="btn-inter-wave-continue" style="margin-top:20px">MAP MODE &#9654;</button>
   </div>
 
-  <!-- ── Mission Result ── -->
+  <!-- Mission Result -->
   <div id="overlay-result" class="overlay hidden">
     <h2>AFTER ACTION REPORT</h2>
     <h1 id="result-title">MISSION COMPLETE</h1>
@@ -83,26 +61,26 @@
     </div>
     <div>
       <button class="btn" id="btn-result-retry">RETRY MISSION</button>
-      <button class="btn btn-large" id="btn-result-continue">CAMPAIGN MAP ▶</button>
+      <button class="btn btn-large" id="btn-result-continue">CAMPAIGN MAP &#9654;</button>
     </div>
   </div>
 
-  <!-- ── In-game control bar ── -->
+  <!-- In-game control bar -->
   <div id="ctrl-bar" class="hidden"></div>
 
-  <!-- ── Tutorial tooltip ── -->
+  <!-- Tutorial tooltip -->
   <div id="tutorial" class="hidden"></div>
 
-</div><!-- #game-container -->
+</div>
 
 <!-- Scripts in dependency order -->
-<script src="js/audio.js"></script>
-<script src="js/campaign.js"></script>
-<script src="js/map.js"></script>
-<script src="js/radar.js"></script>
-<script src="js/threats.js"></script>
-<script src="js/missiles.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/game.js"></script>
+<script src="yugoslavia/js/yu-audio.js"></script>
+<script src="yugoslavia/js/yu-campaign.js"></script>
+<script src="yugoslavia/js/yu-map.js"></script>
+<script src="yugoslavia/js/yu-radar.js"></script>
+<script src="yugoslavia/js/yu-threats.js"></script>
+<script src="yugoslavia/js/yu-missiles.js"></script>
+<script src="yugoslavia/js/yu-ui.js"></script>
+<script src="yugoslavia/js/yu-game.js"></script>
 </body>
 </html>

@@ -129,85 +129,16 @@ const Campaign = (() => {
     ].map(r => r.slice(0, 15)),
   };
 
-  // ── Geographic overlay data per map (rivers, cities, labels) ──
-  // Coordinates in canvas pixels (0-720). Rendered as procedural geographic features.
-  const GEO_OVERLAYS = {
-    YU1: {
-      name: 'VOJVODINA',
-      rivers: [
-        // Danube — horizontal band across rows 12-13
-        { points: [[0,576],[100,578],[200,582],[360,586],[500,584],[620,580],[720,576]], width: 18, color: '#1a3a5a' },
-      ],
-      labels: [
-        { text: 'VOJVODINA', x: 360, y: 120, size: 14, color: 'rgba(200,200,200,0.15)' },
-        { text: 'DUNAV', x: 360, y: 570, size: 9, color: 'rgba(120,160,200,0.4)' },
-        { text: 'BATAJNICA AB', x: 620, y: 310, size: 8, color: 'rgba(200,200,200,0.3)' },
-      ],
-      regions: [],
-    },
-    YU2: {
-      name: 'BEOGRAD',
-      rivers: [
-        // Danube from NE flowing through
-        { points: [[500,0],[480,48],[460,96],[440,144],[420,192],[420,240],[430,288],[440,300]], width: 22, color: '#1a3a5a' },
-        // Sava from W joining Danube
-        { points: [[0,192],[80,200],[160,210],[240,220],[320,235],[380,250],[420,260],[440,280],[440,300]], width: 16, color: '#1a3a5a' },
-      ],
-      labels: [
-        { text: 'BEOGRAD', x: 380, y: 340, size: 13, color: 'rgba(255,255,255,0.2)' },
-        { text: 'DUNAV', x: 490, y: 120, size: 8, color: 'rgba(120,160,200,0.4)' },
-        { text: 'SAVA', x: 200, y: 200, size: 8, color: 'rgba(120,160,200,0.4)' },
-        { text: 'AVALA', x: 340, y: 620, size: 8, color: 'rgba(200,200,200,0.25)' },
-      ],
-      regions: [
-        // Urban glow
-        { polygon: [[300,260],[420,260],[450,320],[440,380],[380,400],[300,380],[280,320]], fill: 'rgba(100,100,120,0.08)' },
-      ],
-    },
-    YU3: {
-      name: 'ŠUMADIJA',
-      rivers: [],
-      labels: [
-        { text: 'ŠUMADIJA RIDGE', x: 360, y: 80, size: 12, color: 'rgba(200,200,200,0.15)' },
-        { text: 'RUDNIK', x: 300, y: 360, size: 9, color: 'rgba(200,200,200,0.25)' },
-        { text: 'AVALA', x: 160, y: 200, size: 8, color: 'rgba(200,200,200,0.2)' },
-      ],
-      regions: [],
-    },
-    YU4: {
-      name: 'KOSOVO',
-      rivers: [
-        // Sitnica river — horizontal band
-        { points: [[0,336],[100,340],[200,338],[360,342],[500,340],[620,336],[720,338]], width: 14, color: '#1a3a5a' },
-      ],
-      labels: [
-        { text: 'KOSOVO POLJE', x: 360, y: 200, size: 12, color: 'rgba(200,200,200,0.15)' },
-        { text: 'SITNICA', x: 360, y: 330, size: 8, color: 'rgba(120,160,200,0.4)' },
-        { text: 'PRIŠTINA', x: 520, y: 460, size: 9, color: 'rgba(200,200,200,0.2)' },
-      ],
-      regions: [],
-    },
-    YU5: {
-      name: 'BUDJANOVCI',
-      rivers: [],
-      labels: [
-        { text: 'BUDJANOVCI', x: 360, y: 300, size: 12, color: 'rgba(200,200,200,0.15)' },
-        { text: '250. RAKETNA BRIGADA', x: 360, y: 330, size: 8, color: 'rgba(196,30,58,0.25)' },
-        { text: 'SREM', x: 200, y: 160, size: 9, color: 'rgba(200,200,200,0.2)' },
-        { text: 'AB BATAJNICA', x: 60, y: 648, size: 8, color: 'rgba(200,200,200,0.3)' },
-      ],
-      regions: [],
-    },
-    YU6: {
-      name: 'MOUNTAIN REDOUBT',
-      rivers: [],
-      labels: [
-        { text: 'DINARIC ALPS', x: 120, y: 120, size: 11, color: 'rgba(200,200,200,0.15)' },
-        { text: 'TARA', x: 300, y: 300, size: 9, color: 'rgba(200,200,200,0.2)' },
-        { text: 'ZLATIBOR', x: 480, y: 500, size: 9, color: 'rgba(200,200,200,0.2)' },
-      ],
-      regions: [],
-    },
+  // ── Mission map data (center coords for Leaflet view) ──
+  // All missions set in Srem region. Terrain grids define game mechanics.
+  // Zoom 12 shows ~50km across — enough for 3:1 surv:tgt ratio to fit on screen
+  const MISSION_MAP_DATA = {
+    YU1: { center: [44.82, 20.10], zoom: 12 },  // northern Srem, Danube visible
+    YU2: { center: [44.78, 20.18], zoom: 12 },  // eastern Srem, urban belt
+    YU3: { center: [44.85, 19.95], zoom: 12 },  // northwest, Fruška Gora edge
+    YU4: { center: [44.75, 20.05], zoom: 12 },  // central open plains
+    YU5: { center: [44.78, 20.08], zoom: 12 },  // Buđanovci (historical)
+    YU6: { center: [44.78, 20.08], zoom: 12 },  // full area
   };
 
   // ── NATO Aircraft data ──
@@ -228,7 +159,7 @@ const Campaign = (() => {
   const MISSIONS = [
     {
       id: 'YU1', name: 'First Night', mapKey: 'YU1',
-      briefing: 'March 24, 1999. NATO has begun air operations. F-16C fighters are approaching from the north over Vojvodina. This is your first engagement — learn your dual radar system. Surveillance radar [Q] is passive-safe. Targeting radar [R] emits and will draw HARM missiles after 2 seconds.',
+      briefing: 'March 24, 1999. NATO has begun air operations. F-16C fighters are approaching from the north over Vojvodina. This is your first engagement — learn your dual radar system. Surveillance radar [Q] is passive-safe. Targeting radar [R] emits and will draw HARM missiles after 10 seconds of continuous emission.',
       threats: ['F-16C (STRIKE)', 'F/A-18C (STRIKE)'],
       waves: [
         { spawnDelay:5.0, threats:[{ type:'F-16C', count:2, edge:'N' }] },
@@ -256,7 +187,7 @@ const Campaign = (() => {
     },
     {
       id: 'YU3', name: 'Stealth Night', mapKey: 'YU3',
-      briefing: 'Intelligence reports F-117A Nighthawk stealth aircraft entering your sector. These are nearly invisible on targeting radar — only detectable at 35% normal range. Your P-18 surveillance radar operates on VHF band and can detect them at 55% range. Press [O] to use optical tracking — fire one missile without radar emission. 37% hit chance, but generates zero signature.',
+      briefing: 'Intelligence reports F-117A Nighthawk stealth aircraft entering your sector. These are nearly invisible on targeting radar — only detectable at 35% normal range. Your P-18 surveillance radar operates on VHF band and can detect them at 55% range. Press [O] to use TV camera track — fire one missile with optronic guidance (no radar emission). 50% hit chance within 25km, generates zero signature.',
       threats: ['F-117A (STEALTH)', 'F-16C (STRIKE)', 'F-15E (HARM-CAPABLE)'],
       waves: [
         { spawnDelay:5.0, threats:[{ type:'F-16C', count:2, edge:'N' }] },
@@ -270,7 +201,7 @@ const Campaign = (() => {
     },
     {
       id: 'YU4', name: 'HARM Alley', mapKey: 'YU4',
-      briefing: 'Kosovo Polje. Open plains with no concealment. Every F-16C and F-15E carries AGM-88 HARM anti-radiation missiles. Your S-125 emission threshold is only 2 seconds — HARMs will launch almost immediately. Flash your targeting radar for single-shot engagements, then go dark. Emission discipline is survival.',
+      briefing: 'Kosovo Polje. Open plains with no concealment. Every F-16C and F-15E carries AGM-88 HARM anti-radiation missiles. Keep targeting radar emissions under 10 seconds or HARMs will launch. Use short bursts — engage, fire, go dark. The S-125 is more resistant to ECM than older systems, but HARM remains lethal.',
       threats: ['F-16C (HARM)', 'F-15E (HARM)', 'A-10A (TANKY)'],
       waves: [
         { spawnDelay:4.0, threats:[{ type:'F-16C', count:3, edge:'N' }] },
@@ -284,7 +215,7 @@ const Campaign = (() => {
     },
     {
       id: 'YU5', name: 'March 27', mapKey: 'YU5',
-      briefing: 'Historical reconstruction. Colonel Zoltan Dani and the 250th Air Defence Missile Brigade. An F-117A Nighthawk is inbound. You must shoot down at least one F-117 to complete this mission. Use optical tracking — the P-18 VHF radar will give you a faint return. Wait for close range. One shot, one chance to make history.',
+      briefing: 'Historical reconstruction. Colonel Zoltan Dani and the 250th Air Defence Missile Brigade. An F-117A Nighthawk is inbound. You must shoot down at least one F-117 to complete this mission. Use TV camera track [O] — the P-18 VHF radar will give you a faint return. Wait for close range. One shot, one chance to make history.',
       threats: ['F-117A (STEALTH)', 'F-16C (ESCORT)', 'EA-6B (JAMMER)'],
       objective: { type: 'kill_type', target: 'F-117A', count: 1 },
       waves: [
@@ -332,7 +263,7 @@ const Campaign = (() => {
   }
 
   function getGeoOverlay(mapKey) {
-    return GEO_OVERLAYS[mapKey] || null;
+    return MISSION_MAP_DATA[mapKey] || null;
   }
 
   return { getMissions, getAircraftData, getMap, getGeoOverlay, TILE_KEY };

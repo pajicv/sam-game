@@ -6,7 +6,7 @@ const Radar = (() => {
   const SURV_SWEEP_PERIOD = 6.0;
   const TGT_SWEEP_SPEED   = (2 * Math.PI) / TGT_SWEEP_PERIOD;
   const SURV_SWEEP_SPEED  = (2 * Math.PI) / SURV_SWEEP_PERIOD;
-  const SURV_RANGE_MULT   = 2.0;
+  const SURV_RANGE_MULT   = 3.0;
   const PHOSPHOR_HALF     = 2.0;
   const DECAY_RATE        = Math.LN2 / PHOSPHOR_HALF;
   const SCOPE_FRAC        = 0.82;

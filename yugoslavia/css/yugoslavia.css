@@ -13,22 +13,45 @@ body {
   user-select: none;
 }
 
-/* ── Canvas stack ── */
+/* ── Map + Radar stack ── */
 #game-container {
   position: relative;
   width: 720px;
   height: 720px;
 }
 
-#map-canvas, #radar-canvas {
+#map-div, #radar-canvas {
   position: absolute;
   top: 0; left: 0;
   width: 720px; height: 720px;
 }
-#map-canvas  { z-index: 0; }
+#map-div {
+  z-index: 0;
+  transition: filter 0.3s;
+}
+#map-div.radar-mode {
+  filter: brightness(0.22) saturate(0.2);
+}
 #radar-canvas {
   z-index: 1;
   filter: drop-shadow(0 0 4px rgba(196,30,58,0.35)) drop-shadow(0 0 8px rgba(0,255,0,0.15));
+}
+
+/* Leaflet overrides */
+#map-div .leaflet-control-attribution { display: none; }
+#map-div .leaflet-tile-pane { opacity: 0.92; }
+
+/* Battery marker */
+.battery-marker { background: none !important; border: none !important; }
+.battery-icon { position: relative; display: flex; align-items: center; }
+.battery-icon svg { display: block; }
+.battery-label {
+  position: absolute;
+  left: 30px; top: 4px;
+  font: bold 9px 'Courier New', monospace;
+  color: #C41E3A;
+  white-space: nowrap;
+  text-shadow: 0 0 3px rgba(0,0,0,0.8), 1px 1px 1px rgba(0,0,0,0.6);
 }
 
 /* ── CSS faction variables (Yugoslavia — Serbian red/blue) ── */
